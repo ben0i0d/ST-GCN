@@ -56,7 +56,6 @@ class Feeder(torch.utils.data.Dataset):
 
         # load data
         self.data = np.load(self.data_path)
-        self.data = np.expand_dims(self.data,axis=4)
 
         if self.debug:
             self.label = self.label[0:100]
