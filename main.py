@@ -2,12 +2,15 @@ import os
 import yaml
 
 import numpy as np
+
 # torch
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
+# record
 from tqdm import tqdm
+from tensorboardX import SummaryWriter
 
 from util.parser import get_parser
 
@@ -88,6 +91,7 @@ class Processor():
             yaml.dump(arg_dict, f)
 
     def train(self):
+        train_writer = SummaryWriter(self.arg.work_dir)
         self.model.train()
         for epoch in range(self.arg.start_epoch, self.arg.num_epoch):
             print("Epoch:[{}/{}]".format(epoch+1,self.arg.num_epoch))
@@ -97,7 +101,7 @@ class Processor():
             top1 = AverageMeter('Acc@1_train')
             top5 = AverageMeter('Acc@5_train')
             
-            for data, label in tqdm(self.trainloader):
+            for batch_idx, (data, label) in enumerate(tqdm(self.trainloader)):
 
                 # get data
                 data = data.float().to(self.device, non_blocking=True)
@@ -115,13 +119,21 @@ class Processor():
                 # record
                 n_batch = len(self.trainloader)
                 loss_epoch += loss.item()
+                
                 acc1, acc5 = accuracy(output, label, topk=(1, 5))
                 top1.update(acc1[0].item(), data.size(0))
                 top5.update(acc5[0].item(), data.size(0))
+                
+                step = epoch * n_batch + batch_idx
+                train_writer.add_scalar('loss_step', loss.data.item(), step)
+                train_writer.add_scalar('lr', self.scheduler.get_last_lr(), step)
 
             self.scheduler.step()
 
             print("Train Acc@1: {} Acc@5: {} Mean loss: {} LR: {}".format(top1.avg, top5.avg, loss_epoch/n_batch, self.scheduler.get_last_lr()))
+            
+            
+            
             if top1.avg > self.best_train_acc1:
                 self.best_train_acc1 = top1.avg
             if top1.avg > self.best_train_acc5:
@@ -141,6 +153,8 @@ class Processor():
 
 
     def eval(self, save_score=False):
+        step_val = 0
+        val_writer = SummaryWriter(self.arg.work_dir)
         self.model.eval()
         score_frag = []
         top1 = AverageMeter('Acc@1')
@@ -151,11 +165,14 @@ class Processor():
                 label = label.long().to(self.device, non_blocking=True)
                 
                 output = self.model(data)
+                loss = self.loss(output, label)
                 
                 acc1, acc5 = accuracy(output, label, topk=(1, 5))
                 top1.update(acc1[0].item(), data.size(0))
                 top5.update(acc5[0].item(), data.size(0))
                 
+                val_writer.add_scalar('loss_val', loss.data.item(), step_val)
+
                 score_frag.append(output.data.cpu().numpy())
 
         print("Eval Acc@1: {} Acc@5: {} ".format(top1.avg,top5.avg))
