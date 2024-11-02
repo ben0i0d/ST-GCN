@@ -68,7 +68,7 @@ class Model(nn.Module):
         else:
             Graph = import_class(graph)
             self.graph = Graph(**graph_args)
-            self.A = torch.from_numpy(self.graph.A).float().cuda(0)
+            self.A = torch.from_numpy(self.graph.A).float()
 
         self.num_class = num_class
         self.use_data_bn = use_data_bn

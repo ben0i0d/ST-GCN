@@ -67,9 +67,12 @@ class unit_gcn(nn.Module):
 
     def forward(self, x):
         N, C, T, V = x.size()
-        self.A = self.A.cuda(x.get_device())
-        A = self.A
-
+        
+        if x.get_device() == -1:
+            A = self.A.to('cpu')
+        else:
+            A = self.A.to(x.get_device())
+        
         # reweight adjacency matrix
         if self.mask_learning:
             A = A * self.mask

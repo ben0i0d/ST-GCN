@@ -50,7 +50,7 @@ class Processor():
             pin_memory=True)
 
     def load_model(self):
-        self.device = torch.device('cuda', self.arg.device)
+        self.device = self.arg.device
         Model = import_class(self.arg.model)
         self.model = Model(**self.arg.model_args).to(self.device)
         self.loss = nn.CrossEntropyLoss().to(self.device)

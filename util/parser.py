@@ -29,7 +29,7 @@ def get_parser():
     # optim
     parser.add_argument('--base-lr', type=float, default=0.01, help='initial learning rate')
     parser.add_argument('--step',type=int,default=[20, 40, 60],nargs='+',help='the epoch where optimizer reduce the learning rate')
-    parser.add_argument('--device',type=int,default=0,nargs='+',help='the indexes of GPUs for training or testing')
+    parser.add_argument('--device',type=str,default='cuda:0',help='the name of device for training or testing')
     parser.add_argument('--optimizer', default='SGD', help='type of optimizer')
     parser.add_argument('--nesterov', type=str2bool, default=False, help='use nesterov or not')
     parser.add_argument('--batch-size', type=int, default=256, help='training batch size')

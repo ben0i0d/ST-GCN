@@ -9,3 +9,5 @@ copy to `data`
 ## train
 
 `python main.py`
+
+**If you wanna use cpu ,add --device cpu**
