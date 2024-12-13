@@ -1,19 +1,16 @@
-import numpy as np
 import random
-
+import numpy as np
 
 def downsample(data_numpy, step, random_sample=True):
     # input: C,T,V,M
     begin = np.random.randint(step) if random_sample else 0
     return data_numpy[:, begin::step, :, :]
 
-
 def temporal_slice(data_numpy, step):
     # input: C,T,V,M
     C, T, V, M = data_numpy.shape
     return data_numpy.reshape(C, T / step, step, V, M).transpose(
         (0, 1, 3, 2, 4)).reshape(C, T / step, V, step * M)
-
 
 def mean_subtractor(data_numpy, mean):
     # input: C,T,V,M
@@ -27,7 +24,6 @@ def mean_subtractor(data_numpy, mean):
     data_numpy[:, :end, :, :] = data_numpy[:, :end, :, :] - mean
     return data_numpy
 
-
 def auto_pading(data_numpy, size, random_pad=False):
     C, T, V, M = data_numpy.shape
     if T < size:
@@ -37,7 +33,6 @@ def auto_pading(data_numpy, size, random_pad=False):
         return data_numpy_paded
     else:
         return data_numpy
-
 
 def random_choose(data_numpy, size, auto_pad=True):
     # input: C,T,V,M
@@ -102,8 +97,6 @@ def random_move(
 
     return data_numpy
             
-
-
 def random_shift(data_numpy):
     # input: C,T,V,M
     C, T, V, M = data_numpy.shape
@@ -117,7 +110,6 @@ def random_shift(data_numpy):
     data_shift[:, bias:bias + size, :, :] = data_numpy[:, begin:end, :, :]
 
     return data_shift
-
 
 def openpose_match(data_numpy):
     C, T, V, M = data_numpy.shape
@@ -160,63 +152,3 @@ def openpose_match(data_numpy):
     data_numpy = data_numpy[:,:,:,rank]
 
     return data_numpy
-
-    # # match poses between 2 frames
-    # if self.pose_matching:
-    #     C, T, V, M = data_numpy.shape
-    #     forward_map = np.zeros((T, M), dtype=int) - 1
-    #     backward_map = np.zeros((T, M), dtype=int) - 1
-
-    #     # match pose
-    #     for t in range(T - 1):
-    #         for m in range(M):
-    #             s = (data_numpy[2, t, :, m].reshape(1, V, 1) != 0) * 1
-    #             if s.sum() == 0:
-    #                 continue
-    #             res = data_numpy[:, t + 1, :, :] - data_numpy[:, t, :,
-    #                                                           m].reshape(
-    #                                                               C, V, 1)
-    #             n = (res * res * s).sum(axis=1).sum(
-    #                 axis=0).argsort()[0]  #next pose
-    #             forward_map[t, m] = n
-    #             backward_map[t + 1, n] = m
-
-    #     # find start point
-    #     start_point = []
-    #     for t in range(T):
-    #         for m in range(M):
-    #             if backward_map[t, m] == -1:
-    #                 start_point.append((t, m))
-
-    #     # generate path
-    #     path_list = []
-    #     c = 0
-    #     for i in range(len(start_point)):
-    #         path = [start_point[i]]
-    #         while (1):
-    #             t, m = path[-1]
-    #             n = forward_map[t, m]
-    #             if n == -1:
-    #                 break
-    #             else:
-    #                 path.append((t + 1, n))
-    #             #print(c,t)
-    #             c = c + 1
-    #         path_list.append(path)
-
-    #     # generate data
-    #     new_M = self.num_match_trace
-    #     path_length = [len(p) for p in path_list]
-    #     sort_index = np.array(path_length).argsort()[::-1][:new_M]
-    #     if self.mode == 'train':
-    #         np.random.shuffle(sort_index)
-    #         sort_index = sort_index[:M]
-    #         new_data_numpy = np.zeros((C, T, V, M))
-    #     else:
-    #         new_data_numpy = np.zeros((C, T, V, new_M))
-    #     for i, p in enumerate(sort_index):
-    #         path = path_list[p]
-    #         for t, m in path:
-    #             new_data_numpy[:, t, :, i] = data_numpy[:, t, :, m]
-
-    #     data_numpy = new_data_numpy

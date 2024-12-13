@@ -1,10 +1,14 @@
-import torch
+import math
+
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-import numpy as np
-from .net import conv_init
 
+def conv_init(module):
+    # he_normal
+    n = module.out_channels
+    for k in module.kernel_size:
+        n *= k
+    module.weight.data.normal_(0, math.sqrt(2. / n))
 
 class Unit_brdc(nn.Module):
     def __init__(self, D_in, D_out, kernel_size, stride=1, dropout=0):
